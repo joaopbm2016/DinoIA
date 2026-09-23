@@ -1,7 +1,31 @@
 import pygame
 import random
+import os
+import json
+
 from personagem import Player
 from cacto import Cacto
+
+def carregar_dados():
+    if os.path.exists("dados.json"):
+        with open("dados.json", "r") as arquivo:
+            dados = json.load(arquivo)
+            print("Dados carregados com sucesso!")
+            return dados
+    else:
+        print("Arquivo de dados não encontrado. Criando novo arquivo.")
+        dados = [[0,0,0,0]]
+            
+        return dados
+
+def salvar_dados(dados):
+    with open("dados.json", "w") as arquivo:
+        json.dump(dados, arquivo)
+        print("Dados salvos com sucesso!")
+
+#entradas
+X_treino=[]
+Y_treino=[]
 
 pygame.init()
 
@@ -48,7 +72,7 @@ timer_cacto=1000
 Novo_cacto = pygame.USEREVENT+1
 pygame.time.set_timer(Novo_cacto,1000)
 Timer_cacto = pygame.USEREVENT+2
-pygame.time.set_timer(Timer_cacto,3000)
+pygame.time.set_timer(Timer_cacto,2000)
 relogio = pygame.time.Clock()
 run = True
 
@@ -59,11 +83,23 @@ def proximo_cacto():
         
     return None    
 
+dados_jogador = carregar_dados()
+
+for linhas in dados_jogador:
+    entradas = [linhas[0], linhas[1], linhas[2]]
+    alvo = linhas[3]
+
+    X_treino.append(entradas)
+    Y_treino.append(alvo)
+
+distancia_cacto = 1
+
 while run:
     relogio.tick(60)
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
+            
             run = False
 
         if event.type == Novo_cacto:
@@ -83,8 +119,16 @@ while run:
 
     for p in list_Players:
         if p.IA==0:
+
+            linha = [distancia_cacto, cacto_vel, p.y, 0]
+
             if tecla[pygame.K_SPACE]:
                 p.pular()
+                linha [3] = 1
+            else:
+                linha [3] = 0
+            dados_jogador.append([linha[0], linha[1], linha[2], linha[3]])
+            
         else:
             if p.IA==1:
                 if tecla[pygame.K_UP]:
@@ -128,5 +172,7 @@ while run:
     tela.blit(distancia_cacto, (20, 80))
     pygame.draw.line(tela,(255,255,255), (0, N_chao+100), (largura, N_chao+100), 5)
     pygame.display.flip()
+
+salvar_dados(dados_jogador)
 
 pygame.quit()
